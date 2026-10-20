@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { isValidEd25519PublicKey } from "../strkey";
+import { MAX_STROOPS } from "../validation";
 import { mergepayMemoSchema } from "./memo";
 import {
   FULL_PERCENT_BP,
@@ -73,7 +74,16 @@ export const expenseFormSchema = z
       .string()
       .min(1, "Amount is required")
       .regex(/^\d+(?:\.\d{1,7})?$/, `${PLAIN_NUMBER} with at most 7 decimal places`) // strict positive decimal with up to 7 decimal places
-      .refine((val) => { const num = parseFloat(val); return !isNaN(num) && num > 0; }, "Amount must be greater than zero"),
+      .refine((val) => { const num = parseFloat(val); return !isNaN(num) && num > 0; }, "Amount must be greater than zero")
+      // The payload gate (`expenseCreationSchema`) rejects anything above the
+      // int64 stroop ceiling; enforce it here too so the field is flagged
+      // inline instead of failing only after submit.
+      .refine(
+        // Zod still runs this after the format check fails, so only measure
+        // amounts that are well-formed (BigInt throws on "abc").
+        (val) => !/^\d+(?:\.\d{1,7})?$/.test(val) || parseUnits(val) <= MAX_STROOPS,
+        "Amount exceeds the maximum supported by Stellar"
+      ),
     assetCode: z
       .string()
       .trim()
@@ -196,7 +206,9 @@ export const expenseFormSchema = z
           });
         }
       } else if (data.splitType === "percentage") {
-        let percentSum = 0;
+        // Summed in basis points (integers) so 10.1 + 20.2 is exactly 30.30,
+        // not 30.299999999999997.
+        let percentSumBp = 0;
         for (let i = 0; i < data.shares.length; i++) {
           const share = data.shares[i];
           if (share.percent === undefined || share.percent === null || isNaN(share.percent)) {
@@ -223,16 +235,14 @@ export const expenseFormSchema = z
             });
             continue;
           }
-          percentSum += share.percent;
+          percentSumBp += Math.round(share.percent * 100);
         }
 
-        // Check if percentages add up to 100 (allowing minor floating delta checks)
-        const roundedTotal = Math.round(percentSum * 100);
-        if (roundedTotal !== 10000) {
+        if (percentSumBp !== FULL_PERCENT_BP) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["shares"],
-            message: `Percentages add up to ${percentSum}% — they must add up to 100%`,
+            message: `Percentages add up to ${formatBasisPoints(percentSumBp)}% — they must add up to 100%`,
           });
         }
       }
