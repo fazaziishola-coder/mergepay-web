@@ -14,6 +14,7 @@ import { api } from "@/lib/api";
 import { handleApiError } from "@/lib/errorHandler";
 import { SETTLEMENT_ASSETS, SETTLEMENT_MEMO_PREFIX } from "@/lib/constants";
 import { AssetSelector } from "@/components/expenses/AssetSelector";
+import { formatStellarCurrency, formatXlm, formatUsdc } from "@/lib/utils/currency";
 import { ExpenseSplitPreview } from "@/components/expenses/ExpenseSplitPreview";
 import { SplitCalculator, type SplitCalculatorChange } from "@/components/expenses/SplitCalculator";
 import type { CreateExpenseRequest, GroupMember, SplitType, ExpenseShareInput } from "@/lib/types";
@@ -497,11 +498,16 @@ export function AddExpenseDialog({
             placeholder="0.00"
             aria-invalid={getError("amount") ? true : undefined}
             aria-describedby={getError("amount") ? "expense-amount-error" : undefined}
-            className={getError("amount") ? "border-flamingo" : undefined}
+            className={getError("amount") ? "border-3 border-flamingo bg-flamingo-pale" : "border-3 border-ink"}
           />
           {getError("amount") && (
-            <p id="expense-amount-error" className="mt-1 text-xs font-bold text-flamingo-dark" role="alert">
+            <p id="expense-amount-error" className="mt-1 text-xs font-bold text-flamingo-dark bg-flamingo-pale border-2 border-ink p-1.5 rounded-lg shadow-brutal-sm" role="alert">
               {getError("amount")}
+            </p>
+          )}
+          {amount && !getError("amount") && (
+            <p className="mt-1 text-xs font-bold text-ink/70">
+              Formatted: {formatStellarCurrency(amount, asset.code)}
             </p>
           )}
         </div>
