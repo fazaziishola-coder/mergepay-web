@@ -177,6 +177,83 @@ describe("AddExpenseDialog — amount input typing rules (#520)", () => {
   });
 });
 
+describe("AddExpenseDialog — settling a committed amount (#631)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it.each([
+    [".5", "0.5"],
+    ["007.50", "7.50"],
+  ])("normalises %s to %s on blur so what is shown is what is validated", (typed, settled) => {
+    renderDialog();
+    fireEvent.change(amountInput(), { target: { value: typed } });
+    fireEvent.blur(amountInput());
+    expect(amountInput()).toHaveValue(settled);
+    expect(document.getElementById("expense-amount-error")).toBeNull();
+  });
+
+  it("leaves a half-typed value alone until the field is committed", () => {
+    renderDialog();
+    fireEvent.change(amountInput(), { target: { value: "5." } });
+    expect(amountInput()).toHaveValue("5.");
+  });
+
+  it("keeps flagging a committed trailing dot rather than repairing it", () => {
+    renderDialog();
+    fireEvent.change(amountInput(), { target: { value: "7." } });
+    fireEvent.blur(amountInput());
+
+    expect(amountInput()).toHaveValue("7.");
+    expect(amountInput()).toHaveAttribute("aria-invalid", "true");
+    expect(document.getElementById("expense-amount-error")).toHaveTextContent(
+      "Amount must be a plain number with at most 7 decimal places"
+    );
+  });
+
+  it("flags an amount above Stellar's ceiling inline, before submit", () => {
+    renderDialog();
+    fireEvent.change(amountInput(), { target: { value: "999999999999999" } });
+    fireEvent.blur(amountInput());
+
+    expect(amountInput()).toHaveAttribute("aria-invalid", "true");
+    expect(amountInput()).toHaveAttribute("aria-describedby", "expense-amount-error");
+    expect(document.getElementById("expense-amount-error")).toHaveTextContent(
+      /exceeds the maximum supported by Stellar/i
+    );
+  });
+});
+
+describe("AddExpenseDialog — inline title error (#631)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("announces a missing title on the field it belongs to", () => {
+    renderDialog();
+    const title = document.getElementById("expense-title") as HTMLInputElement;
+    expect(title).not.toHaveAttribute("aria-invalid");
+
+    fireEvent.blur(title);
+
+    expect(title).toHaveAttribute("aria-invalid", "true");
+    expect(title).toHaveAttribute("aria-describedby", "expense-title-error");
+    const message = document.getElementById("expense-title-error");
+    expect(message).toHaveAttribute("role", "alert");
+    expect(message).toHaveTextContent(/title is required/i);
+  });
+
+  it("clears the error once the title is valid", () => {
+    renderDialog();
+    const title = document.getElementById("expense-title") as HTMLInputElement;
+    fireEvent.blur(title);
+    fireEvent.change(title, { target: { value: "Dinner" } });
+
+    expect(title).not.toHaveAttribute("aria-invalid");
+    expect(document.getElementById("expense-title-error")).toBeNull();
+  });
+});
+
 describe("AddExpenseDialog — currency converter inputs (#520)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
