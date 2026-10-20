@@ -3,11 +3,15 @@ import assert from "node:assert/strict";
 import { formatAmountInput } from "../amountInput";
 
 describe("formatAmountInput — settling a committed amount entry", () => {
-  it("completes the half-typed states a caret passes through", () => {
+  it("adds the missing leading zero to a bare fraction", () => {
     assert.equal(formatAmountInput(".5"), "0.5");
-    assert.equal(formatAmountInput("5."), "5");
-    assert.equal(formatAmountInput("0."), "0");
     assert.equal(formatAmountInput(".0000001"), "0.0000001");
+  });
+
+  it("leaves a trailing dot for the validator to flag", () => {
+    assert.equal(formatAmountInput("5."), "5.");
+    assert.equal(formatAmountInput("0."), "0.");
+    assert.equal(formatAmountInput(" 7. "), "7.");
   });
 
   it("turns an empty or lone-dot entry into an empty field", () => {
