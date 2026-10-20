@@ -184,7 +184,6 @@ describe("AddExpenseDialog — settling a committed amount (#631)", () => {
 
   it.each([
     [".5", "0.5"],
-    ["5.", "5"],
     ["007.50", "7.50"],
   ])("normalises %s to %s on blur so what is shown is what is validated", (typed, settled) => {
     renderDialog();
@@ -198,6 +197,18 @@ describe("AddExpenseDialog — settling a committed amount (#631)", () => {
     renderDialog();
     fireEvent.change(amountInput(), { target: { value: "5." } });
     expect(amountInput()).toHaveValue("5.");
+  });
+
+  it("keeps flagging a committed trailing dot rather than repairing it", () => {
+    renderDialog();
+    fireEvent.change(amountInput(), { target: { value: "7." } });
+    fireEvent.blur(amountInput());
+
+    expect(amountInput()).toHaveValue("7.");
+    expect(amountInput()).toHaveAttribute("aria-invalid", "true");
+    expect(document.getElementById("expense-amount-error")).toHaveTextContent(
+      "Amount must be a plain number with at most 7 decimal places"
+    );
   });
 
   it("flags an amount above Stellar's ceiling inline, before submit", () => {
