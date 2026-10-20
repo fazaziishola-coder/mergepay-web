@@ -221,6 +221,19 @@ export interface ExpenseShare {
   status: ShareStatus;
 }
 
+import { z } from "zod";
+
+export const expenseSchema = z.object({
+  description: z.string().min(1, "Description is required").max(100, "Description is too long"),
+  amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Must be a positive number").refine((val) => {
+    const parts = val.split(".");
+    return !parts[1] || parts[1].length <= 7;
+  }, "Stellar assets support up to 7 decimal places"),
+  assetCode: z.string().min(1, "Asset code is required"),
+});
+
+export type ExpenseFormData = z.infer<typeof expenseSchema>;
+
 export interface Expense {
   id: string;
   groupId: string;
