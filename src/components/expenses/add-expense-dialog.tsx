@@ -497,15 +497,9 @@ export function AddExpenseDialog({
             }}
             onBlur={() => {
               markTouched("amount");
-              if (amount.trim() !== "") {
-                const parsed = Number(amount);
-                if (!isNaN(parsed)) {
-                  setAmount(parsed.toString());
-                }
-              }
             }}
             placeholder="0.00"
-            aria-invalid={getError("amount") ? true : undefined}
+            aria-invalid={getError("amount") ? "true" : undefined}
             aria-describedby={getError("amount") ? "expense-amount-error" : undefined}
             className={getError("amount") ? "border-3 border-flamingo bg-flamingo-pale" : "border-3 border-ink"}
           />
