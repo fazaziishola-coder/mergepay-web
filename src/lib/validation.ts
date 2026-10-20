@@ -1,6 +1,38 @@
 import { z } from "zod";
 import type { CreateExpenseRequest } from "./types";
 
+const MAX_TITLE_LENGTH = 120;
+const AMOUNT_DECIMAL_PLACES = 7;
+const PERCENT_DECIMAL_PLACES = 2;
+
+function parseDecimalUnits(val: string, decimals: number): bigint | null | "too_precise" {
+  const dot = val.indexOf(".");
+  if (dot !== -1 && val.length - dot - 1 > decimals) return "too_precise";
+  try {
+    const scale = 10n ** BigInt(decimals);
+    const intPart = dot === -1 ? val : val.slice(0, dot);
+    const fracPart = dot === -1 ? "" : val.slice(dot + 1);
+    const frac = fracPart.padEnd(decimals, "0").slice(0, decimals);
+    return BigInt(intPart) * scale + BigInt(frac || "0");
+  } catch {
+    return null;
+  }
+}
+
+function formatAmountUnits(units: bigint): string {
+  const scale = 10n ** BigInt(AMOUNT_DECIMAL_PLACES);
+  const whole = units / scale;
+  const frac = (units % scale).toString().padStart(AMOUNT_DECIMAL_PLACES, "0").replace(/0+$/, "");
+  return frac ? `${whole}.${frac}` : `${whole}`;
+}
+
+function formatDecimalUnits(units: bigint, decimals: number): string {
+  const scale = 10n ** BigInt(decimals);
+  const whole = units / scale;
+  const frac = (units % scale).toString().padStart(decimals, "0").replace(/0+$/, "");
+  return frac ? `${whole}.${frac}` : `${whole}`;
+}
+
 
 /** Decimal places Stellar supports for a classic asset (1 stroop = 10^-7). */
 export const DEFAULT_ASSET_DECIMALS = 7;

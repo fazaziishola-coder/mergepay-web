@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { expenseFormSchema, type ExpenseFormValues } from '../lib/validation';
-import { formatStellarAmount, parseStellarAmount } from '../lib/currency';
+import { formatCurrencyAmount as formatStellarAmount } from '../lib/utils/currency';
 
 interface ExpenseFormProps {
   onSubmit: (values: ExpenseFormValues) => void;
