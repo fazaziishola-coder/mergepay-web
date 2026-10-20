@@ -12,6 +12,7 @@ import { orderGroupsByActive, useGroupStore } from "@/lib/group-store";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { JoinGroupDialog } from "@/components/groups/join-group-dialog";
 import { ListSkeleton, GroupCardSkeleton } from "@/components/ui/skeleton";
+import { GroupListSkeleton } from "@/components/groups/GroupListSkeleton";
 
 export default function GroupsPage() {
   const { data, isLoading, refetch } = useGroups();
@@ -49,9 +50,7 @@ export default function GroupsPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <ListSkeleton rows={6} variant="card" />
-          </div>
+          <GroupListSkeleton count={6} />
         ) : groups.length === 0 ? (
           <EmptyState
             icon={<Users className="h-8 w-8 text-ink" />}
