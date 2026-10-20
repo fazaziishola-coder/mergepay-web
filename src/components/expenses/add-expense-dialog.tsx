@@ -495,7 +495,15 @@ export function AddExpenseDialog({
                 e.preventDefault();
               }
             }}
-            onBlur={() => markTouched("amount")}
+            onBlur={() => {
+              markTouched("amount");
+              if (amount.trim() !== "") {
+                const parsed = Number(amount);
+                if (!isNaN(parsed)) {
+                  setAmount(parsed.toString());
+                }
+              }
+            }}
             placeholder="0.00"
             aria-invalid={getError("amount") ? true : undefined}
             aria-describedby={getError("amount") ? "expense-amount-error" : undefined}
