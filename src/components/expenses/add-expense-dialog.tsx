@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ReceiptUploader } from "@/components/ui/receipt-uploader";
-import { Input, Label, Select, FieldHint } from "@/components/ui/input";
+import { Input, Label, Select, FieldHint, FieldError } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useCreateExpense } from "@/lib/queries";
@@ -30,6 +30,7 @@ import {
   splitEqualUnits,
   validateExpenseForm,
 } from "@/lib/expenseValidation";
+import { formatAmountInput } from "@/lib/amountInput";
 import { expenseFormSchema } from "@/lib/validations/expense";
 import { expenseCreationSchema } from "@/lib/validation";
 import { MAX_DECIMAL_PLACES, parseExactAmount } from "@/lib/money";
@@ -411,11 +412,11 @@ export function AddExpenseDialog({
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => markTouched("title")}
             placeholder="e.g. Dinner at Terra Kulture"
+            aria-invalid={getError("title") ? true : undefined}
+            aria-describedby={getError("title") ? "expense-title-error" : undefined}
             className={getError("title") ? "border-flamingo" : undefined}
           />
-          {getError("title") && (
-            <p className="mt-1 text-xs font-bold text-flamingo-dark">{getError("title")}</p>
-          )}
+          <FieldError id="expense-title-error">{getError("title")}</FieldError>
         </div>
         <div className="rounded-xl border-2 border-ink bg-butter p-3 shadow-brutal-sm">
           <p className="font-display text-xs font-bold uppercase tracking-wide">Currency converter</p>
@@ -493,17 +494,18 @@ export function AddExpenseDialog({
                 e.preventDefault();
               }
             }}
-            onBlur={() => markTouched("amount")}
+            onBlur={() => {
+              // Settle a half-typed entry ("5.", ".5", "007") so the value that
+              // is validated and submitted is the one on screen.
+              setAmount((current) => formatAmountInput(current));
+              markTouched("amount");
+            }}
             placeholder="0.00"
             aria-invalid={getError("amount") ? true : undefined}
             aria-describedby={getError("amount") ? "expense-amount-error" : undefined}
             className={getError("amount") ? "border-flamingo" : undefined}
           />
-          {getError("amount") && (
-            <p id="expense-amount-error" className="mt-1 text-xs font-bold text-flamingo-dark" role="alert">
-              {getError("amount")}
-            </p>
-          )}
+          <FieldError id="expense-amount-error">{getError("amount")}</FieldError>
         </div>
 
         {/* Optional on-chain reconciliation tag. Validated on blur so the
@@ -566,9 +568,7 @@ export function AddExpenseDialog({
           onChange={handleSplitChange}
         />
 
-        {getError("shares") && (
-          <p className="text-xs font-bold text-flamingo-dark">{getError("shares")}</p>
-        )}
+        <FieldError id="expense-shares-error">{getError("shares")}</FieldError>
 
         <ExpenseSplitPreview
           amount={amount}

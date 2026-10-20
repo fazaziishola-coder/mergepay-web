@@ -46,6 +46,27 @@ export function Label({
   );
 }
 
+/**
+ * Inline validation message for a form field. Pair the `id` with the field's
+ * `aria-describedby` (and set `aria-invalid` on the field) so the message is
+ * announced with it; `role="alert"` announces it when it first appears.
+ * Renders nothing when there is no message.
+ */
+export function FieldError({
+  id,
+  children,
+}: {
+  id?: string;
+  children?: React.ReactNode;
+}) {
+  if (!children) return null;
+  return (
+    <p id={id} role="alert" className="mt-1 text-xs font-bold text-flamingo-dark font-body">
+      {children}
+    </p>
+  );
+}
+
 export function FieldHint({ children }: { children: React.ReactNode }) {
   return <p className="mt-1 text-xs text-ink/60 font-body">{children}</p>;
 }
