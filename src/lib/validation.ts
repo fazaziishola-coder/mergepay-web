@@ -1,25 +1,6 @@
-/**
- * Validation schemas and helpers for client forms and server API routes.
- *
- * Kept free of React/Next.js imports so it can be used from route handlers,
- * client components, and unit tests alike.
- */
-
 import { z } from "zod";
-
 import type { CreateExpenseRequest } from "./types";
-import {
-  AMOUNT_DECIMAL_PLACES,
-  MAX_TITLE_LENGTH,
-  PERCENT_DECIMAL_PLACES,
-  formatAmountUnits,
-  formatDecimalUnits,
-  parseDecimalUnits,
-} from "./expenseValidation";
 
-// ---------------------------------------------------------------------------
-// Server-side / API Amount Validation
-// ---------------------------------------------------------------------------
 
 /** Decimal places Stellar supports for a classic asset (1 stroop = 10^-7). */
 export const DEFAULT_ASSET_DECIMALS = 7;
@@ -137,10 +118,6 @@ export function validateExpenseAmount(
 
   return { valid: true, normalized: plain };
 }
-
-// ---------------------------------------------------------------------------
-// Client-side Zod Validation Schemas (#284)
-// ---------------------------------------------------------------------------
 
 /**
  * Stellar Ed25519 Public Key regex: 56 uppercase alphanumeric characters starting with 'G'.
@@ -309,10 +286,6 @@ export const settleBalanceSchema = z.object({
 });
 
 export type SettleBalanceFormInput = z.infer<typeof settleBalanceSchema>;
-
-// ---------------------------------------------------------------------------
-// Expense creation payload validation (#315)
-// ---------------------------------------------------------------------------
 
 /**
  * Classic Stellar asset codes are 3–12 alphanumeric characters (`XLM`,
@@ -590,3 +563,14 @@ export type ExpenseCreationInput = z.infer<typeof expenseCreationSchema>;
 export type AssertExpenseCreationContract<
   T extends CreateExpenseRequest = ExpenseCreationInput,
 > = T;
+export const expenseFormSchema = z.object({
+  description: z.string().min(1, "Description is required").max(100, "Description is too long"),
+  amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Must be a positive number").refine((val) => {
+    const parts = val.split(".");
+    return !parts[1] || parts[1].length <= 7;
+  }, "Stellar assets support up to 7 decimal places"),
+  currency: z.string().min(1, "Currency is required"),
+  paidBy: z.string().min(1, "Paid by is required"),
+});
+
+export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
