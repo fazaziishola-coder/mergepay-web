@@ -6,7 +6,7 @@ import { Plus, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { GroupErrorBoundary } from "@/components/groups/GroupErrorBoundary";
 import { useGroups } from "@/lib/queries";
 import { orderGroupsByActive, useGroupStore } from "@/lib/group-store";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
@@ -24,7 +24,7 @@ export default function GroupsPage() {
   const [joinOpen, setJoinOpen] = useState(false);
 
   return (
-    <ErrorBoundary onReset={() => refetch()}>
+    <GroupErrorBoundary onReset={() => refetch()}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -118,6 +118,6 @@ export default function GroupsPage() {
         <CreateGroupDialog open={createOpen} onClose={() => setCreateOpen(false)} />
         <JoinGroupDialog open={joinOpen} onClose={() => setJoinOpen(false)} />
       </div>
-    </ErrorBoundary>
+    </GroupErrorBoundary>
   );
 }
