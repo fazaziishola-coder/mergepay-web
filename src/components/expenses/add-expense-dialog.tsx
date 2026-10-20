@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ReceiptUploader } from "@/components/ui/receipt-uploader";
-import { Input, Label, Select, FieldHint, FieldError } from "@/components/ui/input";
+import { Input, Label, Select, FieldHint } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useCreateExpense } from "@/lib/queries";
@@ -14,6 +14,7 @@ import { api } from "@/lib/api";
 import { handleApiError } from "@/lib/errorHandler";
 import { SETTLEMENT_ASSETS, SETTLEMENT_MEMO_PREFIX } from "@/lib/constants";
 import { AssetSelector } from "@/components/expenses/AssetSelector";
+import { formatStellarCurrency, formatXlm, formatUsdc } from "@/lib/utils/currency";
 import { ExpenseSplitPreview } from "@/components/expenses/ExpenseSplitPreview";
 import { SplitCalculator, type SplitCalculatorChange } from "@/components/expenses/SplitCalculator";
 import type { CreateExpenseRequest, GroupMember, SplitType, ExpenseShareInput } from "@/lib/types";
@@ -30,7 +31,6 @@ import {
   splitEqualUnits,
   validateExpenseForm,
 } from "@/lib/expenseValidation";
-import { formatAmountInput } from "@/lib/amountInput";
 import { expenseFormSchema } from "@/lib/validations/expense";
 import { expenseCreationSchema } from "@/lib/validation";
 import { MAX_DECIMAL_PLACES, parseExactAmount } from "@/lib/money";
@@ -412,11 +412,11 @@ export function AddExpenseDialog({
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => markTouched("title")}
             placeholder="e.g. Dinner at Terra Kulture"
-            aria-invalid={getError("title") ? true : undefined}
-            aria-describedby={getError("title") ? "expense-title-error" : undefined}
             className={getError("title") ? "border-flamingo" : undefined}
           />
-          <FieldError id="expense-title-error">{getError("title")}</FieldError>
+          {getError("title") && (
+            <p className="mt-1 text-xs font-bold text-flamingo-dark">{getError("title")}</p>
+          )}
         </div>
         <div className="rounded-xl border-2 border-ink bg-butter p-3 shadow-brutal-sm">
           <p className="font-display text-xs font-bold uppercase tracking-wide">Currency converter</p>
@@ -494,18 +494,22 @@ export function AddExpenseDialog({
                 e.preventDefault();
               }
             }}
-            onBlur={() => {
-              // Settle a half-typed entry ("5.", ".5", "007") so the value that
-              // is validated and submitted is the one on screen.
-              setAmount((current) => formatAmountInput(current));
-              markTouched("amount");
-            }}
+            onBlur={() => markTouched("amount")}
             placeholder="0.00"
             aria-invalid={getError("amount") ? true : undefined}
             aria-describedby={getError("amount") ? "expense-amount-error" : undefined}
-            className={getError("amount") ? "border-flamingo" : undefined}
+            className={getError("amount") ? "border-3 border-flamingo bg-flamingo-pale" : "border-3 border-ink"}
           />
-          <FieldError id="expense-amount-error">{getError("amount")}</FieldError>
+          {getError("amount") && (
+            <p id="expense-amount-error" className="mt-1 text-xs font-bold text-flamingo-dark bg-flamingo-pale border-2 border-ink p-1.5 rounded-lg shadow-brutal-sm" role="alert">
+              {getError("amount")}
+            </p>
+          )}
+          {amount && !getError("amount") && (
+            <p className="mt-1 text-xs font-bold text-ink/70">
+              Formatted: {formatStellarCurrency(amount, asset.code)}
+            </p>
+          )}
         </div>
 
         {/* Optional on-chain reconciliation tag. Validated on blur so the
@@ -568,7 +572,9 @@ export function AddExpenseDialog({
           onChange={handleSplitChange}
         />
 
-        <FieldError id="expense-shares-error">{getError("shares")}</FieldError>
+        {getError("shares") && (
+          <p className="text-xs font-bold text-flamingo-dark">{getError("shares")}</p>
+        )}
 
         <ExpenseSplitPreview
           amount={amount}
