@@ -280,7 +280,8 @@ export function AddExpenseDialog({
       memo: memo || undefined,
       receiptUrl,
     };
-    return expenseFormSchema.safeParse(payload);
+    const parsed = expenseFormSchema.safeParse(payload);
+    return parsed;
   }, [title, description, amount, asset, splitType, sharesPayload, payerUserId, memo, receiptUrl]);
 
   const fieldErrors = useMemo(() => {
