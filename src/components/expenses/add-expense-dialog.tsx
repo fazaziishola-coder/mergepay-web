@@ -490,16 +490,11 @@ export function AddExpenseDialog({
                 setAmount(e.target.value);
               }
             }}
-            onKeyDown={(e) => {
-              if (isBlockedDecimalKey(e.key)) {
-                e.preventDefault();
-              }
-            }}
             onBlur={() => {
               markTouched("amount");
             }}
             placeholder="0.00"
-            aria-invalid={getError("amount") ? "true" : undefined}
+            aria-invalid={getError("amount") ? true : undefined}
             aria-describedby={getError("amount") ? "expense-amount-error" : undefined}
             className={getError("amount") ? "border-3 border-flamingo bg-flamingo-pale" : "border-3 border-ink"}
           />
