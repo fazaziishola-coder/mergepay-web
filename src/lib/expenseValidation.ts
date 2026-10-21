@@ -102,6 +102,10 @@ export function formatAmountUnits(units: bigint): string {
   return formatDecimalUnits(units, AMOUNT_DECIMAL_PLACES);
 }
 
+export function formatAmountUnitsTrimmed(value: string): string {
+  return value.trim();
+}
+
 /**
  * Split `total` stroops across `count` participants without losing or
  * inventing a stroop: everyone gets the floor share and the remainder is
