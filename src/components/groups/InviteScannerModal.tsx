@@ -95,8 +95,7 @@ export function InviteScannerModal({
               <p className="text-xs font-bold">{cameraError}</p>
               <Button
                 size="sm"
-                variant="outline"
-                className="mt-4 border-cream text-cream hover:bg-cream/20"
+                className="mt-4 border-2 border-cream bg-transparent text-cream hover:bg-cream/25"
                 onClick={startCamera}
               >
                 <RefreshCw className="mr-2 h-3.5 w-3.5" /> Retry Camera
@@ -128,7 +127,7 @@ export function InviteScannerModal({
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
               />
-              <Button type="submit" variant="default">
+              <Button type="submit">
                 Join
               </Button>
             </div>
