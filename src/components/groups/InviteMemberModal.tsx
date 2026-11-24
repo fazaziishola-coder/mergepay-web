@@ -20,7 +20,9 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, KeyRound, Link2, UserPlus } from "lucide-react";
+import { Check, Copy, KeyRound, Link2, QrCode, UserPlus, Scan } from "lucide-react";
+import { InviteScannerModal } from "./InviteScannerModal";
+import { AddressQRCode } from "../stellar/AddressQRCode";
 import { toast } from "sonner";
 import { Dialog } from "@/components/ui/dialog";
 import { QRCodeSVG } from "@/components/ui/lazy-qr-code";
@@ -60,6 +62,7 @@ export function InviteMemberModal({
   const [maxUses, setMaxUses] = useState("");
   const [expiresInHours, setExpiresInHours] = useState("168");
   const [copied, setCopied] = useState<CopyTarget | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
   // Only populated when the API hands back neither a safe URL nor a
   // valid code — see the `shareUrl` derivation below.
   const [fallbackToken, setFallbackToken] = useState<string | null>(null);
@@ -132,6 +135,10 @@ export function InviteMemberModal({
 
   const title = groupName ? `Invite to ${groupName}` : "Invite members";
 
+  const handleScanResult = (codeOrUrl: string) => {
+    toast.success(`Scanned invite: ${codeOrUrl}`);
+  };
+
   return (
     <Dialog
       open={open}
@@ -139,6 +146,23 @@ export function InviteMemberModal({
       title={title}
       description="Generate a shareable link and code that lets people join this group."
     >
+      <div className="mb-4 flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setScannerOpen(true)}
+          className="gap-2"
+        >
+          <Scan className="h-4 w-4" /> Scan QR / Code
+        </Button>
+      </div>
+
+      <InviteScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScan={handleScanResult}
+      />
+
       {!invite ? (
         <div className="space-y-4">
           <div className="flex items-start gap-3 rounded-xl border-3 border-ink bg-grape-pale p-3 shadow-brutal-sm">
